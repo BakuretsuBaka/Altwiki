@@ -3,7 +3,7 @@
   "use strict";
 
   // Wikiless is a privacy front end for Wikipedia. These public instances come and go,
-  // so the background script checks them before it sends you anywhere.
+  // so the background script checks which one is up before it sends you anywhere.
   const WIKILESS_INSTANCES = [
     "https://wikiless.com",
     "https://wikiless.org",
@@ -15,10 +15,7 @@
 
   const METAPEDIA_LANGS = ["en", "de", "fr", "es", "it", "pt", "ru", "sv", "da", "no", "fi", "nl", "hu", "ro", "bg", "hr", "el", "et", "pl", "ca", "cs", "sk", "sl", "sr", "tr", "uk", "lv", "lt"];
 
-  const MW_MISSING = /noarticletext|mw-newarticletext|"wgArticleId":0[,}]/;
-
   // url(lang, title): where the article would live. langs: the Wikipedia language codes the wiki covers.
-  // check: how to tell that the page exists. "mediawiki" = HTTP status plus the usual "no such page" markers.
   const WIKIS = [
     {
       id: "wikiless",
@@ -82,7 +79,6 @@
       langs: ["en"],
       note: "AI-generated encyclopedia associated with xAI.",
       url: (l, t) => `https://grokipedia.com/page/${t}`,
-      check: { missingBody: /<title>[^<]*(not found|404)/i },
       origins: ["https://grokipedia.com/*"]
     },
     {
@@ -112,7 +108,6 @@
       note: "Large Chinese-language encyclopedia.",
       titleStyle: "space",
       url: (l, t) => `https://baike.baidu.com/item/${t}`,
-      check: { missingBody: /尚未收录词条|词条不存在/, missingUrl: /\/search\/none|wappass|captcha/i },
       origins: ["https://baike.baidu.com/*"]
     },
     {
@@ -123,7 +118,6 @@
       note: "Chinese-language collaborative reference work.",
       titleStyle: "space",
       url: (l, t) => `https://www.baike.com/wiki/${t}`,
-      check: { missingBody: /暂无词条|词条不存在|没有找到.{0,6}词条/ },
       origins: ["https://www.baike.com/*", "https://baike.com/*"]
     }
   ];
@@ -253,7 +247,7 @@
     return [...set];
   }
 
-  const api = { WIKIS, WIKILESS_INSTANCES, DEFAULTS, MW_MISSING, parseWikipediaUrl, encodeTitle, getWiki, supportsLang, candidateUrls, wikilessUrl, mergeSettings, normalizeInstance, wikiOrder, allOrigins };
+  const api = { WIKIS, WIKILESS_INSTANCES, DEFAULTS, parseWikipediaUrl, encodeTitle, getWiki, supportsLang, candidateUrls, wikilessUrl, mergeSettings, normalizeInstance, wikiOrder, allOrigins };
   root.Altwiki = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

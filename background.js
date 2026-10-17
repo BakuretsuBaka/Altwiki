@@ -4,10 +4,7 @@ if (typeof importScripts === "function" && typeof Altwiki === "undefined") impor
 const api = typeof browser !== "undefined" ? browser : chrome;
 const A = Altwiki;
 
-const FETCH_TIMEOUT = 6000;
 const PROBE_TIMEOUT = 4000;
-const HIT_TTL = 60 * 60 * 1000;
-const MISS_TTL = 10 * 60 * 1000;
 const DOWN_TTL = 10 * 60 * 1000;
 const GOOD_TTL = 3 * 60 * 1000;
 
@@ -45,52 +42,12 @@ async function fetchLimited(url, timeout, limit) {
   }
 }
 
-// ---------- does the wiki have the article? ----------
-
-const cache = new Map(); // url -> { at, ok }
-
 function sameSite(a, b) {
   try {
     const ha = new URL(a).hostname.replace(/^www\./, "");
     const hb = new URL(b).hostname.replace(/^www\./, "");
     return ha === hb || ha.endsWith("." + hb) || hb.endsWith("." + ha);
   } catch (e) { return false; }
-}
-
-async function pageExists(wiki, url) {
-  const hit = cache.get(url);
-  if (hit && Date.now() - hit.at < (hit.ok ? HIT_TTL : MISS_TTL)) return hit;
-  let ok = false, why = "";
-  try {
-    const r = await fetchLimited(url, FETCH_TIMEOUT, 65536);
-    const chk = wiki.check || {};
-    ok = r.ok && sameSite(r.url, url);
-    // only a clear "not found" counts as missing; a site that blocks the check or answers oddly is given the benefit of the doubt
-    if (!r.ok) {
-      const gone = r.status === 404 || r.status === 410;
-      ok = !gone;
-      why = gone ? "HTTP " + r.status + " (no such article)" : (r.challenge ? "bot check page" : "HTTP " + r.status) + ", could not check, redirecting anyway";
-    } else if (!ok) { ok = true; why = "redirected to another site (" + hostOf(r.url) + "), could not check, redirecting anyway"; }
-    if (ok && chk.missingUrl && chk.missingUrl.test(r.url)) { ok = false; why = "no such article (redirected to " + r.url + ")"; }
-    if (ok && chk.missingBody && chk.missingBody.test(r.text)) { ok = false; why = "page says the article does not exist"; }
-    if (ok && !wiki.check && A.MW_MISSING.test(r.text)) { ok = false; why = "page says the article does not exist"; }
-    if (ok && !why) why = "found";
-  } catch (e) {
-    ok = true;
-    why = "request failed (" + ((e && e.name) || "error") + ": " + ((e && e.message) || "") + "), could not check, redirecting anyway";
-  }
-  const res = { at: Date.now(), ok, why };
-  cache.set(url, res);
-  return res;
-}
-
-async function findInWiki(wiki, parsed, trace) {
-  const urls = A.candidateUrls(wiki, parsed);
-  if (!urls.length) return null;
-  const results = await Promise.all(urls.map((u) => pageExists(wiki, u)));
-  if (trace) urls.forEach((u, k) => trace.push(wiki.name + " " + u + ": " + results[k].why));
-  const i = results.findIndex((r) => r.ok);
-  return i >= 0 ? urls[i] : null;
 }
 
 // ---------- Wikiless ----------
@@ -161,11 +118,9 @@ async function resolveTarget(parsed, trace, skip) {
     const wiki = A.getWiki(id);
     if (!wiki) continue;
     if (!wiki.proxy && !A.candidateUrls(wiki, parsed).length) { trace.push(wiki.name + ": does not cover language " + parsed.lang); continue; }
-    let url;
-    if (wiki.proxy) url = await findWikiless(parsed, trace);
-    else if (settings.mode !== "priority") url = A.candidateUrls(wiki, parsed)[0] || null; // one wiki: go straight there
-    else url = await findInWiki(wiki, parsed, trace);
-    trace.push(wiki.name + ": " + (url ? "found" : wiki.proxy ? "no instance answered" : "no such article"));
+    // no check beforehand: go straight to the article address (Wikiless needs a working instance, so that one is checked)
+    const url = wiki.proxy ? await findWikiless(parsed, trace) : A.candidateUrls(wiki, parsed)[0] || null;
+    trace.push(wiki.name + ": " + (url ? "going there" : "no instance answered"));
     if (url) return { url, id };
   }
   return null;
@@ -312,7 +267,7 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 });
 
-// Firefox does not grant the wikis' addresses on install, and without them the existence check cannot run:
+// Firefox does not grant the wikis' addresses on install, and without them Wikiless instances cannot be checked and the wikis' pages cannot report a missing article:
 // send the user to the settings page, which has the button for it.
 if (api.runtime.onInstalled) api.runtime.onInstalled.addListener(async (d) => {
   if (d.reason !== "install" && d.reason !== "update") return;

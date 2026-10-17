@@ -2,11 +2,11 @@
 
 <h1 align="center">Altwiki</h1>
 
-A browser extension (Chrome and Firefox, Manifest V3) that opens Wikipedia articles on an alternative wiki instead. When you open a Wikipedia article, Altwiki sends you to the same article, in the same language, on your chosen wiki. With several wikis in priority mode it first checks whether each one has the article. Wikiless is the exception: it needs a working instance, so Altwiki picks one that is up and stays on Wikipedia if none is.
+A browser extension (Chrome and Firefox, Manifest V3) that opens Wikipedia articles on an alternative wiki instead. When you open a Wikipedia article, Altwiki sends you to the same article, in the same language, on your chosen wiki. Altwiki does not ask the wiki beforehand: you are sent straight to the article address. If that wiki turns out not to have the article, Altwiki moves on (see below). Wikiless is the exception: it needs a working instance, so Altwiki picks one that is up and stays on Wikipedia if none is.
 
 ## What it does
 
-- **Pick one wiki, or several with priorities.** The default is a single wiki. In priority mode the first ticked wiki is asked first, the second only if the first has no article, and so on.
+- **Pick one wiki, or several with priorities.** The default is a single wiki. In priority mode the first ticked wiki is tried first, the second only if the first turns out not to have the article, and so on.
 - **Default: a random working Wikiless instance.** [Wikiless](https://github.com/Metastem/Wikiless) is a privacy front end for Wikipedia. Altwiki picks a random public instance, skips the ones that are down, and if none answers you stay on Wikipedia. You can add your own instances.
 - **Same language.** `de.wikipedia.org` goes to the German edition of a wiki, never to an English article. Wikis that only exist in one language are skipped for the others.
 - **Only real article views.** Edit, history, talk, special pages, files, categories and `?redirect=no` links are left alone. Add `?altwiki=off` to any Wikipedia link to skip the redirect.
@@ -32,12 +32,11 @@ A browser extension (Chrome and Firefox, Manifest V3) that opens Wikipedia artic
 
 - An article is only found when it has the same title as on Wikipedia. HandWiki titles carry a topic prefix (for example `Physics:`), so Altwiki also tries the common prefixes.
 - If the wiki then shows its "this page has no text" notice (the standard MediaWiki missing-article block, in any language), Altwiki sends the tab back to the Wikipedia article (in priority mode it first tries the next wikis in your list). This happens once per redirect and only on pages Altwiki sent you to. If you would rather land on Wikiless in that case, use "several wikis with priorities" and put Wikiless last.
-- With a single wiki there is no check: the article address is built from the title and you are sent straight there. In priority mode a wiki is judged to have the article when the page answers normally and does not show the usual "no such page" text; a site that blocks the check or answers oddly is given the benefit of the doubt. Sites that handle missing pages in an unusual way (Grokipedia, Baidu Baike, Baike.com) are checked with extra rules that may need adjusting when the sites change.
-- Altwiki asks the wikis for the page before redirecting, so a redirect can take a moment. Answers are remembered for a while.
-
+- There is no check before the redirect: the article address is built from the title and you are sent straight there. Whether the wiki really has the article only shows once its page has loaded, so you may briefly see an empty page before Altwiki moves on. This detection only works on MediaWiki wikis. Grokipedia, Baidu Baike and Baike.com do not show that notice, so on those a missing article is not noticed.
+- Wikiless instances are checked in the background before a redirect (up to three at a time), so a redirect through Wikiless can take a moment. Answers are remembered for a while.
 ## Privacy
 
-Altwiki sends no data anywhere except the requests that check whether an alternative wiki has an article (priority mode only) or whether a Wikiless instance is up: the address of that article on that wiki (and, for Wikiless, on an instance). Settings are stored in the browser and never leave it. There is no analytics and no account.
+Altwiki sends no data anywhere except the requests that check whether a Wikiless instance is up (the address of the article on that instance). It asks no other wiki anything: your browser simply opens the page. Settings are stored in the browser and never leave it. There is no analytics and no account.
 
 ## Install
 
@@ -62,7 +61,7 @@ Clone this repository and load the folder directly ("Load unpacked" in Chromium 
 
 ## Development
 
-- `shared.js` holds the wiki list, the URL parsing and the settings logic. `background.js` does the redirecting and the existence checks. `options.*` and `popup.*` are the settings page and the toolbar popup.
+- `shared.js` holds the wiki list, the URL parsing and the settings logic. `background.js` does the redirecting and the Wikiless instance checks, `missing.js` notices an empty article on a wiki. `options.*` and `popup.*` are the settings page and the toolbar popup.
 - `npm test` runs the unit tests. `python3 tools/build.py` writes the Firefox and Chromium packages to `dist/`. `python3 tools/make_icons.py` redraws the icon.
 - To add a wiki, add an entry to `WIKIS` in `shared.js` (address pattern, languages, `origins`) and run the tests: they check that `manifest.json` has the matching host permissions.
 
