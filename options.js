@@ -108,7 +108,7 @@ $("probe").addEventListener("click", async () => {
   for (const r of res || []) {
     const li = document.createElement("li");
     li.className = r.ok ? "up" : "dn";
-    li.textContent = `${r.ok ? "up" : "down"}: ${r.instance.replace("https://", "")}${r.ok ? ` (${r.ms} ms)` : ""}`;
+    li.textContent = `${r.ok ? "up" : "down"}: ${r.instance.replace("https://", "")} (${r.why}, ${r.ms} ms)`;
     list.appendChild(li);
   }
   if (!list.children.length) list.appendChild(el("li", { textContent: "No answer from the background script." }));

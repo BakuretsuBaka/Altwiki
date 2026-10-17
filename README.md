@@ -19,19 +19,15 @@ A browser extension (Chrome and Firefox, Manifest V3) that opens Wikipedia artic
 | Wikiless (default) | various | all | Privacy front end for Wikipedia |
 | Justapedia | justapedia.org | en | Broad encyclopedia intended as an alternative to Wikipedia's editorial approach |
 | Citizendium | citizendium.org | en | General encyclopedia with expert involvement |
-| Scholarpedia | scholarpedia.org | en | Expert-authored, peer-reviewed scientific articles |
 | RationalWiki | rationalwiki.org | en | Skepticism, pseudoscience, religion, politics and critical commentary |
 | Conservapedia | conservapedia.com | en | Conservative Christian perspective |
 | Metapedia | metapedia.org | many | Far-right, nationalist and ethnonationalist perspective |
-| Infogalactic | infogalactic.com | en | Alternative encyclopedia project associated with criticism of Wikipedia |
 | Grokipedia | grokipedia.com | en | AI-generated encyclopedia associated with xAI |
 | HandWiki | handwiki.org | en | Science, mathematics, computing and other technical topics |
-| PlusPedia | pluspedia.org | de | German-language general-purpose alternative |
-| EcuRed | ecured.cu | es | Spanish-language encyclopedia associated with Cuba |
 | Ruwiki | ru.ruwiki.ru | ru | Russian-language encyclopedia |
 | Baidu Baike | baike.baidu.com | zh | Large Chinese-language encyclopedia |
 | Baike.com | baike.com | zh | Chinese-language collaborative reference work |
-| Everipedia | everipedia.org | en | Wikipedia-derived project; the site has moved, so articles may not resolve |
+| Everipedia | everipedia.io | en | Wikipedia-derived project; new address, article paths are unverified |
 
 ## Limits
 

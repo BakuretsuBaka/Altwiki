@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Altwiki",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Opens Wikipedia articles on an alternative wiki instead, when that wiki has the same article in the same language.",
   "permissions": [
     "storage",
@@ -18,23 +18,17 @@
     "https://justapedia.org/*",
     "https://citizendium.org/*",
     "https://www.citizendium.org/*",
-    "https://www.scholarpedia.org/*",
-    "https://scholarpedia.org/*",
     "https://rationalwiki.org/*",
     "https://www.conservapedia.com/*",
     "https://conservapedia.com/*",
     "https://*.metapedia.org/*",
-    "https://infogalactic.com/*",
     "https://grokipedia.com/*",
     "https://handwiki.org/*",
-    "https://pluspedia.org/*",
-    "https://www.ecured.cu/*",
-    "https://ecured.cu/*",
     "https://ru.ruwiki.ru/*",
     "https://baike.baidu.com/*",
     "https://www.baike.com/*",
     "https://baike.com/*",
-    "https://everipedia.org/*"
+    "https://everipedia.io/*"
   ],
   "optional_host_permissions": [
     "https://*/*"

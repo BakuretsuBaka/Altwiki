@@ -35,11 +35,10 @@ test("leaves everything that is not an article view alone", () => {
 
 test("builds target URLs in the right scheme and language", () => {
   const p = A.parseWikipediaUrl("https://de.wikipedia.org/wiki/K%C3%B6ln");
-  assert.deepStrictEqual(A.candidateUrls(A.getWiki("pluspedia"), p), ["https://pluspedia.org/wiki/K%C3%B6ln"]);
+  assert.deepStrictEqual(A.candidateUrls(A.getWiki("conservapedia"), p), []);
   assert.deepStrictEqual(A.candidateUrls(A.getWiki("justapedia"), p), []); // English only
   assert.deepStrictEqual(A.candidateUrls(A.getWiki("metapedia"), p), ["https://de.metapedia.org/wiki/K%C3%B6ln"]);
   const en = A.parseWikipediaUrl("https://en.wikipedia.org/wiki/Quantum_mechanics#History");
-  assert.deepStrictEqual(A.candidateUrls(A.getWiki("infogalactic"), en), ["https://infogalactic.com/info/Quantum_mechanics#History"]);
   assert.strictEqual(A.candidateUrls(A.getWiki("handwiki"), en)[0], "https://handwiki.org/wiki/Quantum_mechanics#History");
   assert.ok(A.candidateUrls(A.getWiki("handwiki"), en).includes("https://handwiki.org/wiki/Physics:Quantum_mechanics#History"));
   const zh = A.parseWikipediaUrl("https://zh.wikipedia.org/wiki/Python_(programming_language)");
@@ -53,9 +52,9 @@ test("settings are cleaned up", () => {
   assert.strictEqual(d.mode, "single");
   assert.deepStrictEqual(A.wikiOrder(d), ["wikiless"]);
   assert.strictEqual(d.priority.length, A.WIKIS.length);
-  const s = A.mergeSettings({ mode: "priority", wiki: "nope", priority: [{ id: "ecured", on: true }, { id: "bogus", on: true }, { id: "justapedia", on: true }], customWikiless: ["http://plain.example", "wl.example.org/", "junk"] });
+  const s = A.mergeSettings({ mode: "priority", wiki: "nope", priority: [{ id: "rationalwiki", on: true }, { id: "bogus", on: true }, { id: "justapedia", on: true }], customWikiless: ["http://plain.example", "wl.example.org/", "junk"] });
   assert.strictEqual(s.wiki, "wikiless");
-  assert.deepStrictEqual(A.wikiOrder(s), ["ecured", "justapedia"]);
+  assert.deepStrictEqual(A.wikiOrder(s), ["rationalwiki", "justapedia"]);
   assert.strictEqual(s.priority.length, A.WIKIS.length);
   assert.deepStrictEqual(s.customWikiless, ["https://wl.example.org"]);
 });

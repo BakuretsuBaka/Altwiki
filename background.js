@@ -39,7 +39,7 @@ async function fetchLimited(url, timeout, limit) {
     } else if (res.body && res.body.cancel) {
       res.body.cancel().catch(() => {});
     }
-    return { ok: res.ok, status: res.status, url: res.url, text };
+    return { ok: res.ok, status: res.status, url: res.url, text, challenge: res.headers.get("cf-mitigated") === "challenge" };
   } finally {
     clearTimeout(timer);
   }
@@ -102,41 +102,74 @@ function shuffle(list) {
   return a;
 }
 
+const CHALLENGE = /just a moment|attention required|checking your browser|anubis|making sure you.re not a bot/i;
+
+// { ok, why }. A bot-check page counts as reachable: a real browser tab solves it, a background fetch cannot.
 async function instanceWorks(instance, parsed) {
   try {
     const r = await fetchLimited(A.wikilessUrl(instance, parsed), PROBE_TIMEOUT, 16384);
-    return r.ok && /<html/i.test(r.text) && !/just a moment|attention required|checking your browser/i.test(r.text);
+    if (r.challenge || CHALLENGE.test(r.text)) return { ok: true, why: "bot check (the browser will handle it)" };
+    if (!r.ok) return { ok: false, why: "HTTP " + r.status };
+    if (!/<html/i.test(r.text)) return { ok: false, why: "no page in the answer" };
+    return { ok: true, why: "ok" };
   } catch (e) {
-    return false;
+    return { ok: false, why: e && e.name === "AbortError" ? "timeout" : "no connection (blocked or down)" };
   }
 }
 
-async function findWikiless(parsed) {
+async function findWikiless(parsed, trace) {
   const now = Date.now();
-  const candidates = shuffle(instances().filter((i) => !(down.get(i) > now)));
+  const all = instances();
+  const skipped = all.filter((i) => down.get(i) > now);
+  if (skipped.length) trace.push("recently down, skipped: " + skipped.map(hostOf).join(", "));
+  const candidates = shuffle(all.filter((i) => !(down.get(i) > now)));
   // an instance that answered a moment ago: go straight there
   const known = candidates.find((i) => good.get(i) > now);
-  if (known) return A.wikilessUrl(known, parsed);
-  for (const inst of candidates.slice(0, 4)) {
-    if (await instanceWorks(inst, parsed)) {
-      good.set(inst, Date.now() + GOOD_TTL);
-      return A.wikilessUrl(inst, parsed);
-    }
-    down.set(inst, Date.now() + DOWN_TTL);
+  if (known) { trace.push(hostOf(known) + ": answered recently"); return A.wikilessUrl(known, parsed); }
+  // ask a few at a time (the first answer wins), so one slow instance does not hold the page up
+  for (let i = 0; i < candidates.length; i += 3) {
+    const batch = candidates.slice(i, i + 3);
+    const results = await Promise.all(batch.map((inst) => instanceWorks(inst, parsed)));
+    let winner = null;
+    batch.forEach((inst, k) => {
+      trace.push(hostOf(inst) + ": " + results[k].why);
+      if (results[k].ok) { if (!winner) winner = inst; good.set(inst, Date.now() + GOOD_TTL); }
+      else down.set(inst, Date.now() + DOWN_TTL);
+    });
+    if (winner) return A.wikilessUrl(winner, parsed);
   }
   return null; // nothing is up: stay on Wikipedia
 }
 
+function hostOf(u) { try { return new URL(u).hostname; } catch (e) { return u; } }
+
 // ---------- resolving ----------
 
-async function resolveTarget(parsed) {
+async function resolveTarget(parsed, trace) {
   for (const id of A.wikiOrder(settings)) {
     const wiki = A.getWiki(id);
     if (!wiki) continue;
-    const url = wiki.proxy ? await findWikiless(parsed) : await findInWiki(wiki, parsed);
+    if (!wiki.proxy && !A.candidateUrls(wiki, parsed).length) { trace.push(wiki.name + ": does not cover language " + parsed.lang); continue; }
+    const url = wiki.proxy ? await findWikiless(parsed, trace) : await findInWiki(wiki, parsed);
+    trace.push(wiki.name + ": " + (url ? "found" : wiki.proxy ? "no instance answered" : "no such article"));
     if (url) return url;
   }
   return null;
+}
+
+// ---------- log (shown in the popup, helps when a redirect does not happen) ----------
+
+async function log(entry) {
+  try {
+    const res = await api.storage.local.get("log");
+    const list = ((res && res.log) || []).slice(-19);
+    list.push(Object.assign({ t: new Date().toISOString() }, entry));
+    await api.storage.local.set({ log: list });
+  } catch (e) {}
+}
+
+async function hasPermission() {
+  try { return await api.permissions.contains({ origins: A.allOrigins() }); } catch (e) { return null; }
 }
 
 // ---------- navigation ----------
@@ -147,46 +180,61 @@ const redirected = new Map(); // tabId -> { from, target }: the last redirect in
 
 const stripHash = (u) => String(u).replace(/#.*$/, "");
 
-api.webNavigation.onCommitted.addListener(
-  (d) => {
-    if (d.frameId !== 0) return;
-    if ((d.transitionQualifiers || []).includes("forward_back")) backForward.set(d.tabId, d.url);
-  },
-  { url: [{ hostSuffix: "wikipedia.org" }] }
-);
+const lastSeen = new Map(); // tabId -> { url, at }: navigations onBeforeNavigate already looked at
 
-api.webNavigation.onBeforeNavigate.addListener(
-  async (d) => {
-    if (d.frameId !== 0) return;
-    const n = (seq.get(d.tabId) || 0) + 1;
-    seq.set(d.tabId, n);
-    await ready;
-    if (!settings.enabled) return;
-    const parsed = A.parseWikipediaUrl(d.url);
-    if (!parsed) return;
-    // Coming from the alternative page we sent this tab to, back to the Wikipedia article it replaced
-    // (Back button, or a link on that page): let the user have Wikipedia this once.
-    const rec = redirected.get(d.tabId);
-    if (rec && stripHash(d.url) === rec.from) {
-      try {
-        const tab = await api.tabs.get(d.tabId);
-        if (tab.url && stripHash(tab.url) === stripHash(rec.target)) { redirected.delete(d.tabId); return; }
-      } catch (e) {}
-    }
-    const target = await resolveTarget(parsed);
-    if (!target) return;
-    if (seq.get(d.tabId) !== n) return; // the user went somewhere else meanwhile
-    if (backForward.get(d.tabId) === d.url) { // Back to an article we redirected away from: let it be
-      backForward.delete(d.tabId);
-      return;
-    }
-    redirected.set(d.tabId, { from: stripHash(d.url), target });
-    api.tabs.update(d.tabId, { url: target }).catch(() => {});
-  },
-  { url: [{ hostSuffix: "wikipedia.org" }] }
-);
+async function handleNavigation(d) {
+  const n = (seq.get(d.tabId) || 0) + 1;
+  seq.set(d.tabId, n);
+  await ready;
+  if (!settings.enabled) return;
+  const parsed = A.parseWikipediaUrl(d.url);
+  if (!parsed) return;
+  // Coming from the alternative page we sent this tab to, back to the Wikipedia article it replaced
+  // (Back button, or a link on that page): let the user have Wikipedia this once.
+  const rec = redirected.get(d.tabId);
+  if (rec && stripHash(d.url) === rec.from) {
+    try {
+      const tab = await api.tabs.get(d.tabId);
+      if (tab.url && stripHash(tab.url) === stripHash(rec.target)) { redirected.delete(d.tabId); return; }
+    } catch (e) {}
+  }
+  const trace = [];
+  const target = await resolveTarget(parsed, trace);
+  if (!target) {
+    if (trace.length && (await hasPermission()) === false) trace.unshift("access to the wikis is not granted (open the settings page and click Grant access)");
+    log({ page: d.url, result: "stayed on Wikipedia", trace });
+    return;
+  }
+  if (seq.get(d.tabId) !== n) return; // the user went somewhere else meanwhile
+  if (backForward.get(d.tabId) === d.url) { // Back to an article we redirected away from: let it be
+    backForward.delete(d.tabId);
+    return;
+  }
+  redirected.set(d.tabId, { from: stripHash(d.url), target });
+  log({ page: d.url, result: "redirected to " + target, trace });
+  api.tabs.update(d.tabId, { url: target }).catch(() => {});
+}
 
-api.tabs.onRemoved.addListener((id) => { seq.delete(id); backForward.delete(id); redirected.delete(id); });
+const WIKIPEDIA_FILTER = { url: [{ hostSuffix: "wikipedia.org" }] };
+
+api.webNavigation.onBeforeNavigate.addListener((d) => {
+  if (d.frameId !== 0) return;
+  lastSeen.set(d.tabId, { url: d.url, at: Date.now() });
+  return handleNavigation(d);
+}, WIKIPEDIA_FILTER);
+
+// A page reached through an HTTP redirect (a search engine's tracking link, a short link) never shows up in
+// onBeforeNavigate with its final address, only here. Pages onBeforeNavigate already handled are skipped.
+api.webNavigation.onCommitted.addListener((d) => {
+  if (d.frameId !== 0) return;
+  const q = d.transitionQualifiers || [];
+  if (q.includes("forward_back")) { backForward.set(d.tabId, d.url); return; }
+  const seen = lastSeen.get(d.tabId);
+  if (seen && seen.url === d.url && Date.now() - seen.at < 30000) return;
+  return handleNavigation(d);
+}, WIKIPEDIA_FILTER);
+
+api.tabs.onRemoved.addListener((id) => { seq.delete(id); backForward.delete(id); redirected.delete(id); lastSeen.delete(id); });
 
 // ---------- messages from the settings page ----------
 
@@ -197,9 +245,9 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       const sample = { lang: "en", rawLang: "en", title: "Wikipedia", hash: "" };
       const out = await Promise.all(instances().map(async (instance) => {
         const t0 = Date.now();
-        const ok = await instanceWorks(instance, sample);
-        if (ok) { good.set(instance, Date.now() + GOOD_TTL); down.delete(instance); } else down.set(instance, Date.now() + DOWN_TTL);
-        return { instance, ok, ms: Date.now() - t0 };
+        const r = await instanceWorks(instance, sample);
+        if (r.ok) { good.set(instance, Date.now() + GOOD_TTL); down.delete(instance); } else down.set(instance, Date.now() + DOWN_TTL);
+        return { instance, ok: r.ok, why: r.why, ms: Date.now() - t0 };
       }));
       sendResponse(out);
     })();

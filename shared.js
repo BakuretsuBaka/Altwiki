@@ -49,15 +49,6 @@
       origins: ["https://citizendium.org/*", "https://www.citizendium.org/*"]
     },
     {
-      id: "scholarpedia",
-      name: "Scholarpedia",
-      home: "https://www.scholarpedia.org/",
-      langs: ["en"],
-      note: "Expert-authored, peer-reviewed scientific articles.",
-      url: (l, t) => `https://www.scholarpedia.org/article/${t}`,
-      origins: ["https://www.scholarpedia.org/*", "https://scholarpedia.org/*"]
-    },
-    {
       id: "rationalwiki",
       name: "RationalWiki",
       home: "https://rationalwiki.org/",
@@ -85,15 +76,6 @@
       origins: ["https://*.metapedia.org/*"]
     },
     {
-      id: "infogalactic",
-      name: "Infogalactic",
-      home: "https://infogalactic.com/",
-      langs: ["en"],
-      note: "Alternative encyclopedia project associated with criticism of Wikipedia.",
-      url: (l, t) => `https://infogalactic.com/info/${t}`,
-      origins: ["https://infogalactic.com/*"]
-    },
-    {
       id: "grokipedia",
       name: "Grokipedia",
       home: "https://grokipedia.com/",
@@ -112,24 +94,6 @@
       url: (l, t) => `https://handwiki.org/wiki/${t}`,
       prefixes: ["Physics:", "Chemistry:", "Biology:", "Astronomy:", "Engineering:", "Software:", "Earth:", "Medicine:", "Philosophy:", "Social:", "Biography:", "Company:", "Organization:", "Place:"],
       origins: ["https://handwiki.org/*"]
-    },
-    {
-      id: "pluspedia",
-      name: "PlusPedia",
-      home: "https://pluspedia.org/",
-      langs: ["de"],
-      note: "German-language general-purpose alternative.",
-      url: (l, t) => `https://pluspedia.org/wiki/${t}`,
-      origins: ["https://pluspedia.org/*"]
-    },
-    {
-      id: "ecured",
-      name: "EcuRed",
-      home: "https://www.ecured.cu/",
-      langs: ["es"],
-      note: "Spanish-language encyclopedia associated with Cuba.",
-      url: (l, t) => `https://www.ecured.cu/${t}`,
-      origins: ["https://www.ecured.cu/*", "https://ecured.cu/*"]
     },
     {
       id: "ruwiki",
@@ -165,11 +129,11 @@
     {
       id: "everipedia",
       name: "Everipedia",
-      home: "https://everipedia.org/",
+      home: "https://everipedia.io/",
       langs: ["en"],
-      note: "Wikipedia-derived project. The site has moved around, so articles may not resolve.",
-      url: (l, t) => `https://everipedia.org/wiki/lang_en/${t}`,
-      origins: ["https://everipedia.org/*"]
+      note: "Wikipedia-derived project. Article paths on the new address are unverified.",
+      url: (l, t) => `https://everipedia.io/wiki/lang_en/${t}`,
+      origins: ["https://everipedia.io/*"]
     }
   ];
 

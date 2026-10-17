@@ -11,6 +11,11 @@
     .muted { opacity: .7; font-size: 12.5px; }
     button { width: 100%; margin-top: 10px; font: inherit; color: inherit; background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; }
     button:hover { border-color: var(--accent); }
+    details { margin-top: 10px; font-size: 12.5px; }
+    summary { cursor: pointer; opacity: .8; }
+    #events { list-style: none; margin: 6px 0 0; padding: 0; max-height: 220px; overflow: auto; }
+    #events li { padding: 4px 0; border-top: 1px solid var(--line); word-break: break-word; }
+    #events span { opacity: .65; display: block; }
     .switch { position: relative; display: inline-flex; cursor: pointer; }
     .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
     .slider { width: 36px; height: 20px; border-radius: 999px; background: #9ca3af88; position: relative; transition: background .15s; }
@@ -24,6 +29,8 @@
   <div class="row"><span>Redirect on</span><label class="switch"><input type="checkbox" id="enabled"><span class="slider"></span></label></div>
   <div class="row muted"><span id="summary"></span></div>
   <button id="options" type="button">Choose wiki</button>
+  <details id="why"><summary>What happened on the last pages</summary><ul id="events"></ul></details>
+  <button id="debug" type="button">Copy debug info</button>
   <script src="shared.js"></script>
   <script src="popup.js"></script>
 </body>
