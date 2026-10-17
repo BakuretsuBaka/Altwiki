@@ -22,7 +22,7 @@ A browser extension (Chrome and Firefox, Manifest V3) that opens Wikipedia artic
 | Citizendium | citizendium.org | en | General encyclopedia with expert involvement |
 | RationalWiki | rationalwiki.org | en | Skepticism, pseudoscience, religion, politics and critical commentary |
 | Conservapedia | conservapedia.com | en | Conservative Christian perspective |
-| Metapedia | metapedia.org | many | Far-right, nationalist and ethnonationalist perspective |
+| Metapedia | metapedia.org | en, cs, da, de, el, es, et, fr, hr, mk, no, pt, ro, sk, sv | Far-right, nationalist and ethnonationalist perspective |
 | Grokipedia | grokipedia.com | en | AI-generated encyclopedia associated with xAI |
 | HandWiki | handwiki.org | en | Science, mathematics, computing and other technical topics |
 | Ruwiki | ru.ruwiki.ru | ru | Russian-language encyclopedia |

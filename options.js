@@ -8,7 +8,7 @@ function save() {
 }
 
 function langLabel(w) {
-  return w.langs === "*" ? "all languages" : w.langs.length > 6 ? w.langs.slice(0, 6).join(", ") + " and more" : w.langs.join(", ");
+  return w.langs === "*" ? "all languages" : w.langs.join(", ");
 }
 
 function el(tag, props, ...kids) {

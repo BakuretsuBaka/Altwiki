@@ -13,7 +13,7 @@
     "https://wiki.nerdvpn.de"
   ];
 
-  const METAPEDIA_LANGS = ["en", "de", "fr", "es", "it", "pt", "ru", "sv", "da", "no", "fi", "nl", "hu", "ro", "bg", "hr", "el", "et", "pl", "ca", "cs", "sk", "sl", "sr", "tr", "uk", "lv", "lt"];
+  const METAPEDIA_LANGS = ["en", "cs", "da", "de", "el", "es", "et", "fr", "hr", "mk", "no", "pt", "ro", "sk", "sv"]; // the editions Metapedia lists
 
   // url(lang, title): where the article would live. langs: the Wikipedia language codes the wiki covers.
   const WIKIS = [

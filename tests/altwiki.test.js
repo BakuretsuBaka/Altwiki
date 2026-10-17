@@ -100,7 +100,7 @@ test("pages on the wikis are read back, and the 'view on' list only offers wikis
   const onRu = A.viewTargets(A.parseArticleUrl("https://ru.ruwiki.ru/wiki/%D0%9A%D0%BE%D1%82"));
   assert.strictEqual(onRu[0].url, "https://ru.wikipedia.org/wiki/%D0%9A%D0%BE%D1%82");
   assert.ok(!onRu.some((t) => t.id === "ruwiki"));
-  assert.deepStrictEqual(onRu.map((t) => t.id), ["wikipedia", "wikiless", "metapedia"]);
+  assert.deepStrictEqual(onRu.map((t) => t.id), ["wikipedia", "wikiless"]); // Metapedia has no Russian edition
   const zh = names("https://zh.wikipedia.org/wiki/Python");
   assert.deepStrictEqual(zh, ["wikiless", "baidubaike", "baikecom"]);
 });
