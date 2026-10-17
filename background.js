@@ -225,6 +225,14 @@ api.tabs.onRemoved.addListener((id) => { seq.delete(id); backForward.delete(id);
 // ---------- messages from the settings page ----------
 
 api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg && msg.type === "wikilessUrl") { // the popup: "View article on Wikiless"
+    (async () => {
+      await ready;
+      const parsed = A.parseArticleUrl(String(msg.page || ""), settings.customWikiless);
+      sendResponse(parsed ? await findWikiless(parsed, []) : null);
+    })();
+    return true;
+  }
   if (msg && msg.type === "missing" && sender && sender.tab) {
     (async () => {
       const tab = sender.tab;

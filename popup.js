@@ -11,6 +11,7 @@ function summary() {
 $("enabled").addEventListener("change", (e) => {
   settings.enabled = e.target.checked;
   api.storage.local.set({ settings });
+  loadViews();
 });
 $("options").addEventListener("click", () => { api.runtime.openOptionsPage(); window.close(); });
 
@@ -18,6 +19,7 @@ api.storage.local.get("settings").then((res) => {
   settings = A.mergeSettings(res && res.settings);
   $("enabled").checked = settings.enabled;
   summary();
+  loadViews();
 });
 
 function el(tag, props, ...kids) {
@@ -64,3 +66,34 @@ $("grant").addEventListener("click", async () => {
   showPermission();
 });
 showPermission();
+
+// With the redirect off: offer the article on the other wikis that cover the page's language.
+async function loadViews() {
+  $("views").hidden = true;
+  if (settings.enabled) return;
+  let tab;
+  try { [tab] = await api.tabs.query({ active: true, currentWindow: true }); } catch (e) { return; }
+  if (tab && tab.url) renderViews(tab.url, tab.id);
+}
+
+function renderViews(url, tabId) {
+  const parsed = A.parseArticleUrl(url, settings.customWikiless);
+  const box = $("views"), list = $("viewlist");
+  list.textContent = "";
+  const targets = parsed ? A.viewTargets(parsed) : [];
+  box.hidden = !targets.length;
+  for (const t of targets) {
+    const b = el("button", { type: "button", textContent: "View article on " + t.name });
+    b.addEventListener("click", async () => {
+      let target = t.url;
+      if (!target) { // Wikiless: the background script picks an instance that is up
+        b.textContent = "Looking for a working instance...";
+        try { target = await api.runtime.sendMessage({ type: "wikilessUrl", page: url }); } catch (e) {}
+        if (!target) { b.textContent = "No Wikiless instance answered"; return; }
+      }
+      api.tabs.update(tabId, { url: target });
+      window.close();
+    });
+    list.appendChild(b);
+  }
+}

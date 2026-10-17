@@ -72,3 +72,35 @@ test("manifest permissions cover every wiki", () => {
   const want = [...new Set(A.WIKIS.filter((w) => !w.proxy).flatMap((w) => w.origins))].sort();
   assert.deepStrictEqual(cs, want);
 });
+
+test("pages on the wikis are read back, and the 'view on' list only offers wikis for that language", () => {
+  // every wiki's own address pattern parses back to the same article
+  for (const w of A.WIKIS.filter((x) => x.url)) {
+    const lang = w.langs[0];
+    const parsed = { lang, rawLang: lang, title: "Alan_Turing", hash: "#x" };
+    const url = A.candidateUrls(w, parsed)[0];
+    const back = A.parseArticleUrl(url);
+    assert.ok(back, w.id);
+    assert.strictEqual(back.source, w.id);
+    assert.strictEqual(back.lang, lang);
+    assert.strictEqual(back.title, "Alan_Turing");
+    assert.strictEqual(back.hash, "#x");
+  }
+  assert.strictEqual(A.parseArticleUrl("https://handwiki.org/wiki/Physics:Quantum_mechanics").title, "Quantum_mechanics");
+  assert.strictEqual(A.parseArticleUrl("https://wikiless.com/wiki/Cat?lang=de").lang, "de");
+  assert.strictEqual(A.parseArticleUrl("https://example.org/wiki/Cat"), null);
+
+  const names = (href) => A.viewTargets(A.parseArticleUrl(href)).map((t) => t.id);
+  const de = names("https://de.wikipedia.org/wiki/K%C3%B6ln");
+  assert.deepStrictEqual(de, ["wikiless", "metapedia"]); // everything else is English only
+  const en = names("https://en.wikipedia.org/wiki/Cat");
+  assert.ok(en.includes("justapedia") && en.includes("handwiki") && !en.includes("ruwiki") && !en.includes("baidubaike"));
+  assert.ok(!en.includes("wikipedia"));
+  // on an alternative wiki: Wikipedia in that language is offered, the wiki itself is not
+  const onRu = A.viewTargets(A.parseArticleUrl("https://ru.ruwiki.ru/wiki/%D0%9A%D0%BE%D1%82"));
+  assert.strictEqual(onRu[0].url, "https://ru.wikipedia.org/wiki/%D0%9A%D0%BE%D1%82");
+  assert.ok(!onRu.some((t) => t.id === "ruwiki"));
+  assert.deepStrictEqual(onRu.map((t) => t.id), ["wikipedia", "wikiless", "metapedia"]);
+  const zh = names("https://zh.wikipedia.org/wiki/Python");
+  assert.deepStrictEqual(zh, ["wikiless", "baidubaike", "baikecom"]);
+});

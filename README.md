@@ -9,6 +9,7 @@ A browser extension (Chrome and Firefox, Manifest V3) that opens Wikipedia artic
 - **Pick one wiki, or several with priorities.** The default is a single wiki. In priority mode the first ticked wiki is tried first, the second only if the first turns out not to have the article, and so on.
 - **Default: a random working Wikiless instance.** [Wikiless](https://github.com/Metastem/Wikiless) is a privacy front end for Wikipedia. Altwiki picks a random public instance, skips the ones that are down, and if none answers you stay on Wikipedia. You can add your own instances.
 - **Same language.** `de.wikipedia.org` goes to the German edition of a wiki, never to an English article. Wikis that only exist in one language are skipped for the others.
+- **Redirect off, still handy.** With the redirect switched off, the popup lists "View article on ..." buttons while you are on a Wikipedia article or on one of the wikis. It only offers wikis that cover the language of that page (many are English only), and Wikipedia itself when you are on a wiki.
 - **Only real article views.** Edit, history, talk, special pages, files, categories and `?redirect=no` links are left alone. Add `?altwiki=off` to any Wikipedia link to skip the redirect.
 - **Back button works.** After a redirect, Back takes you to the Wikipedia page once and does not send you away again.
 

@@ -189,6 +189,72 @@
     return encodeURIComponent(t).replace(/%3A/gi, ":").replace(/%2F/gi, "/");
   }
 
+  // ---------- reading a page the user is on (Wikipedia or one of the alternative wikis) ----------
+
+  function escapeRe(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+  // One regular expression per wiki, built from its own address pattern, so there is a single source of truth.
+  const MARK_L = "\u0001", MARK_T = "\u0002";
+  function wikiPattern(wiki) {
+    const tpl = wiki.url(MARK_L, MARK_T).replace("//www.", "//");
+    const [head, rest] = tpl.split(MARK_T);
+    const re = escapeRe(head).replace(MARK_L, "([a-z-]+)") + "([^?#]+)" + escapeRe(rest || "");
+    return new RegExp("^" + re + "$", "i");
+  }
+
+  // Article address on Wikipedia, on one of the wikis in the list, or on a Wikiless instance
+  // -> { lang, rawLang, title, hash, source } where source is "wikipedia" or the wiki id. null otherwise.
+  function parseArticleUrl(href, extraInstances) {
+    const wp = parseWikipediaUrl(href);
+    if (wp) return Object.assign(wp, { source: "wikipedia" });
+    let u;
+    try { u = new URL(href); } catch (e) { return null; }
+    if (u.protocol !== "https:") return null;
+    const bare = (u.origin + u.pathname).replace("//www.", "//");
+    for (const w of WIKIS) {
+      if (!w.url) continue;
+      const m = wikiPattern(w).exec(bare);
+      if (!m) continue;
+      const hasLang = hasLangSlot(w);
+      const lang = hasLang ? m[1].toLowerCase() : w.langs[0];
+      let title = hasLang ? m[2] : m[1];
+      try { title = decodeURIComponent(title); } catch (e) { return null; }
+      title = title.replace(/ /g, "_").trim();
+      for (const p of w.prefixes || []) if (title.startsWith(p)) { title = title.slice(p.length); break; }
+      if (!title || !supportsLang(w, lang)) return null;
+      return { lang, rawLang: lang, title, hash: u.hash || "", source: w.id };
+    }
+    for (const inst of WIKILESS_INSTANCES.concat(extraInstances || [])) {
+      if (u.origin !== inst.replace(/\/+$/, "") || !u.pathname.startsWith("/wiki/")) continue;
+      let title = u.pathname.slice(6);
+      try { title = decodeURIComponent(title); } catch (e) { return null; }
+      title = title.replace(/ /g, "_").trim();
+      if (!title) return null;
+      const rawLang = (u.searchParams.get("lang") || "en").toLowerCase();
+      return { lang: normalizeLang(rawLang), rawLang, title, hash: u.hash || "", source: "wikiless" };
+    }
+    return null;
+  }
+
+  function hasLangSlot(w) { return w.url(MARK_L, MARK_T).includes(MARK_L); }
+
+  // Where the article could be read instead: Wikipedia (when the page is on a wiki) and every wiki that covers the
+  // language, except the one the page is on. { id, name, url } -- url is null for Wikiless (needs a working instance).
+  function viewTargets(parsed) {
+    const out = [];
+    if (parsed.source !== "wikipedia") {
+      const raw = parsed.rawLang && /^[a-z]{2,3}(-[a-z]+)*$|^simple$/.test(parsed.rawLang) ? parsed.rawLang : parsed.lang;
+      out.push({ id: "wikipedia", name: "Wikipedia", url: `https://${raw}.wikipedia.org/wiki/${encodeTitle(parsed.title)}${parsed.hash}` });
+    }
+    for (const w of WIKIS) {
+      if (w.id === parsed.source) continue;
+      if (w.proxy) { out.push({ id: w.id, name: w.short || w.name, url: null }); continue; }
+      const urls = candidateUrls(w, parsed);
+      if (urls.length) out.push({ id: w.id, name: w.name, url: urls[0] });
+    }
+    return out;
+  }
+
   function getWiki(id) {
     return WIKIS.find((w) => w.id === id) || null;
   }
@@ -247,7 +313,7 @@
     return [...set];
   }
 
-  const api = { WIKIS, WIKILESS_INSTANCES, DEFAULTS, parseWikipediaUrl, encodeTitle, getWiki, supportsLang, candidateUrls, wikilessUrl, mergeSettings, normalizeInstance, wikiOrder, allOrigins };
+  const api = { WIKIS, WIKILESS_INSTANCES, DEFAULTS, parseWikipediaUrl, parseArticleUrl, viewTargets, encodeTitle, getWiki, supportsLang, candidateUrls, wikilessUrl, mergeSettings, normalizeInstance, wikiOrder, allOrigins };
   root.Altwiki = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

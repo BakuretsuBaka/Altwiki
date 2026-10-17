@@ -14,6 +14,9 @@
     .warn { margin: 8px 0; padding: 8px 10px; border: 1px solid #d9822b; border-radius: 8px; font-size: 12.5px; background: #d9822b22; }
     .warn button { margin-top: 8px; }
     [hidden] { display: none !important; }
+    #views { margin-top: 8px; }
+    #viewlist { max-height: 190px; overflow: auto; padding-right: 2px; }
+    #viewlist button { margin-top: 6px; text-align: left; }
     details { margin-top: 10px; font-size: 12.5px; }
     summary { cursor: pointer; opacity: .8; }
     #events { list-style: none; margin: 6px 0 0; padding: 0; max-height: 220px; overflow: auto; }
@@ -32,6 +35,7 @@
   <div class="row"><span>Redirect on</span><label class="switch"><input type="checkbox" id="enabled"><span class="slider"></span></label></div>
   <div id="perm" class="warn" hidden><b>Access to the wikis is missing.</b> Without it Altwiki cannot check Wikiless instances or notice a wiki that lacks the article (Firefox does not grant this on install).<button id="grant" type="button">Grant access</button></div>
   <div class="row muted"><span id="summary"></span></div>
+  <div id="views" hidden><div class="muted">Redirect is off. View this article on:</div><div id="viewlist"></div></div>
   <button id="options" type="button">Choose wiki</button>
   <details id="why"><summary>What happened on the last pages</summary><ul id="events"></ul></details>
   <button id="debug" type="button">Copy debug info</button>
