@@ -32,6 +32,7 @@ A browser extension (Chrome and Firefox, Manifest V3) that opens Wikipedia artic
 ## Limits
 
 - An article is only found when it has the same title as on Wikipedia. HandWiki titles carry a topic prefix (for example `Physics:`), so Altwiki also tries the common prefixes.
+- If the wiki then shows its "this page has no text" notice (the standard MediaWiki missing-article block, in any language), Altwiki sends the tab on to a working Wikiless instance, when there is one. This happens once per redirect and only on pages Altwiki sent you to.
 - With a single wiki there is no check: the article address is built from the title and you are sent straight there. In priority mode a wiki is judged to have the article when the page answers normally and does not show the usual "no such page" text; a site that blocks the check or answers oddly is given the benefit of the doubt. Sites that handle missing pages in an unusual way (Grokipedia, Baidu Baike, Baike.com, Everipedia) are checked with extra rules that may need adjusting when the sites change.
 - Altwiki asks the wikis for the page before redirecting, so a redirect can take a moment. Answers are remembered for a while.
 

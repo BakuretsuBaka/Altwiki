@@ -5,7 +5,7 @@ import os
 import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FILES = ["LICENSE", "background.js", "shared.js", "manifest.json", "options.html", "options.css", "options.js", "popup.html", "popup.js"]
+FILES = ["LICENSE", "background.js", "missing.js", "shared.js", "manifest.json", "options.html", "options.css", "options.js", "popup.html", "popup.js"]
 ICONS = sorted(f for f in os.listdir(os.path.join(ROOT, "icons")) if f.endswith(".png") or f == "icon.svg")
 
 with open(os.path.join(ROOT, "manifest.json"), encoding="utf-8") as f:

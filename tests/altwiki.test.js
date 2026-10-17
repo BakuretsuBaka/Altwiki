@@ -67,4 +67,8 @@ test("manifest permissions cover every wiki", () => {
     assert.ok(m.host_permissions.some((p) => new RegExp("^" + p.replace(/[.]/g, "\\.").replace(/\*/g, ".*") + "$").test(u.origin + "/x")), c);
   }
   assert.ok(m.permissions.includes("webNavigation"));
+  // the "no text" detector runs on every wiki except the Wikiless instances
+  const cs = m.content_scripts[0].matches.sort();
+  const want = [...new Set(A.WIKIS.filter((w) => !w.proxy).flatMap((w) => w.origins))].sort();
+  assert.deepStrictEqual(cs, want);
 });

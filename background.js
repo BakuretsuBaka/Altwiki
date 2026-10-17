@@ -189,7 +189,22 @@ async function hasPermission() {
 
 const seq = new Map(); // tabId -> counter, so a newer navigation cancels an older answer
 const backForward = new Map(); // tabId -> url the user reached with Back/Forward
-const redirected = new Map(); // tabId -> { from, target }: the last redirect in that tab
+const redirected = new Map(); // tabId -> { from, full, target }: the last redirect in that tab
+const sessionStore = api.storage.session || null; // survives the background script being unloaded
+
+function setRec(tabId, rec) {
+  redirected.set(tabId, rec);
+  if (sessionStore) sessionStore.set({ ["rec" + tabId]: rec }).catch(() => {});
+}
+async function getRec(tabId) {
+  if (redirected.has(tabId)) return redirected.get(tabId);
+  if (!sessionStore) return null;
+  try { const r = await sessionStore.get("rec" + tabId); return (r && r["rec" + tabId]) || null; } catch (e) { return null; }
+}
+function dropRec(tabId) {
+  redirected.delete(tabId);
+  if (sessionStore) sessionStore.remove("rec" + tabId).catch(() => {});
+}
 
 const stripHash = (u) => String(u).replace(/#.*$/, "");
 
@@ -204,11 +219,11 @@ async function handleNavigation(d) {
   if (!parsed) return;
   // Coming from the alternative page we sent this tab to, back to the Wikipedia article it replaced
   // (Back button, or a link on that page): let the user have Wikipedia this once.
-  const rec = redirected.get(d.tabId);
+  const rec = await getRec(d.tabId);
   if (rec && stripHash(d.url) === rec.from) {
     try {
       const tab = await api.tabs.get(d.tabId);
-      if (tab.url && stripHash(tab.url) === stripHash(rec.target)) { redirected.delete(d.tabId); return; }
+      if (tab.url && stripHash(tab.url) === stripHash(rec.target)) { dropRec(d.tabId); return; }
     } catch (e) {}
   }
   const trace = [];
@@ -223,7 +238,7 @@ async function handleNavigation(d) {
     backForward.delete(d.tabId);
     return;
   }
-  redirected.set(d.tabId, { from: stripHash(d.url), target });
+  setRec(d.tabId, { from: stripHash(d.url), full: d.url, target });
   log({ page: d.url, result: "redirected to " + target, trace });
   api.tabs.update(d.tabId, { url: target }).catch(() => {});
 }
@@ -247,11 +262,28 @@ api.webNavigation.onCommitted.addListener((d) => {
   return handleNavigation(d);
 }, WIKIPEDIA_FILTER);
 
-api.tabs.onRemoved.addListener((id) => { seq.delete(id); backForward.delete(id); redirected.delete(id); lastSeen.delete(id); });
+api.tabs.onRemoved.addListener((id) => { seq.delete(id); backForward.delete(id); dropRec(id); lastSeen.delete(id); });
 
 // ---------- messages from the settings page ----------
 
 api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg && msg.type === "missing" && sender && sender.tab) {
+    (async () => {
+      const tab = sender.tab;
+      const rec = await getRec(tab.id);
+      // only for a page Altwiki sent this tab to, and only once
+      if (!rec || rec.fellBack || !sameSite(tab.url, rec.target)) return;
+      const parsed = A.parseWikipediaUrl(rec.full);
+      if (!parsed) return;
+      const trace = [];
+      const url = await findWikiless(parsed, trace);
+      if (!url) { log({ page: rec.full, result: "the wiki has no article, no Wikiless instance answered, stayed", trace }); return; }
+      setRec(tab.id, { from: rec.from, full: rec.full, target: url, fellBack: true });
+      log({ page: rec.full, result: "the wiki has no article, redirected to " + url, trace });
+      api.tabs.update(tab.id, { url }).catch(() => {});
+    })();
+    return;
+  }
   if (msg && msg.type === "probe") {
     (async () => {
       await ready;
