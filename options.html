@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Altwiki settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1><img src="icons/icon-48.png" width="32" height="32" alt="">Altwiki</h1>
+      <label class="switch"><input type="checkbox" id="enabled"><span class="slider"></span><span class="switch-label">Redirect on</span></label>
+    </header>
+    <p class="lead">When you open a Wikipedia article, Altwiki checks whether your chosen wiki has an article on the same topic in the same language and opens that one instead. If it does not, you stay on Wikipedia. Links with <code>?altwiki=off</code> are never redirected.</p>
+
+    <div id="perm" class="notice" hidden>
+      <span>Altwiki needs access to the wikis to check their articles.</span>
+      <button id="grant" type="button">Grant access</button>
+    </div>
+
+    <section class="card">
+      <h2>How to choose</h2>
+      <label class="radio"><input type="radio" name="mode" value="single"> <span><b>One wiki</b><br><small>Every article goes to the wiki you pick below.</small></span></label>
+      <label class="radio"><input type="radio" name="mode" value="priority"> <span><b>Several wikis with priorities</b><br><small>The first ticked wiki is asked first. If it has no article, the next one is asked, and so on. If none has it, you stay on Wikipedia.</small></span></label>
+    </section>
+
+    <section class="card" id="singleCard">
+      <h2>Wiki</h2>
+      <div id="singleList"></div>
+    </section>
+
+    <section class="card" id="priorityCard" hidden>
+      <h2>Priority list</h2>
+      <p class="hint">Tick the wikis to use and move them up or down. Wikis that are not ticked are skipped.</p>
+      <ol id="priorityList"></ol>
+    </section>
+
+    <section class="card">
+      <h2>Wikiless instances</h2>
+      <p class="hint">Wikiless wikis are public servers that come and go. Altwiki picks a random one that answers and skips the ones that are down. Add your own instance here, one address per line (https only).</p>
+      <textarea id="custom" rows="3" spellcheck="false" placeholder="https://wikiless.example.org"></textarea>
+      <div class="row">
+        <button id="saveCustom" type="button">Save instances</button>
+        <button id="probe" type="button">Check which instances are up</button>
+        <span id="customMsg" class="hint"></span>
+      </div>
+      <ul id="probeList" class="probe"></ul>
+    </section>
+
+    <section class="card">
+      <h2>Good to know</h2>
+      <ul class="plain">
+        <li>Only plain article views are redirected. Edit, history, talk and special pages stay on Wikipedia.</li>
+        <li>The article has to carry the same title as on Wikipedia. Wikis with their own naming may miss some articles.</li>
+        <li>A wiki is only used for the languages it covers. Other languages stay on Wikipedia.</li>
+        <li>If you press Back after a redirect, you land on the Wikipedia page and are not sent away again.</li>
+      </ul>
+    </section>
+  </main>
+  <script src="shared.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

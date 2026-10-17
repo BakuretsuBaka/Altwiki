@@ -1,0 +1,82 @@
+{
+  "manifest_version": 3,
+  "name": "Altwiki",
+  "version": "1.0.0",
+  "description": "Opens Wikipedia articles on an alternative wiki instead, when that wiki has the same article in the same language.",
+  "permissions": [
+    "storage",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "*://*.wikipedia.org/*",
+    "https://wikiless.com/*",
+    "https://wikiless.org/*",
+    "https://wikiless.tiekoetter.com/*",
+    "https://wikiless.whateveritworks.org/*",
+    "https://wikiless.v4nt.com/*",
+    "https://wiki.nerdvpn.de/*",
+    "https://justapedia.org/*",
+    "https://citizendium.org/*",
+    "https://www.citizendium.org/*",
+    "https://www.scholarpedia.org/*",
+    "https://scholarpedia.org/*",
+    "https://rationalwiki.org/*",
+    "https://www.conservapedia.com/*",
+    "https://conservapedia.com/*",
+    "https://*.metapedia.org/*",
+    "https://infogalactic.com/*",
+    "https://grokipedia.com/*",
+    "https://handwiki.org/*",
+    "https://pluspedia.org/*",
+    "https://www.ecured.cu/*",
+    "https://ecured.cu/*",
+    "https://ru.ruwiki.ru/*",
+    "https://baike.baidu.com/*",
+    "https://www.baike.com/*",
+    "https://baike.com/*",
+    "https://everipedia.org/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*"
+  ],
+  "action": {
+    "default_title": "Altwiki",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png"
+    }
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "altwiki@bakuretsubaka",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "scripts": [
+      "shared.js",
+      "background.js"
+    ]
+  }
+}
