@@ -67,10 +67,9 @@ $("grant").addEventListener("click", async () => {
 });
 showPermission();
 
-// With the redirect off: offer the article on the other wikis that cover the page's language.
+// On Wikipedia or one of the wikis, redirect on or off: offer the article on the other wikis that cover the page's language.
 async function loadViews() {
   $("views").hidden = true;
-  if (settings.enabled) return;
   let tab;
   try { [tab] = await api.tabs.query({ active: true, currentWindow: true }); } catch (e) { return; }
   if (tab && tab.url) renderViews(tab.url, tab.id);
@@ -86,6 +85,8 @@ function renderViews(url, tabId) {
     const b = el("button", { type: "button", textContent: "View article on " + t.name });
     b.addEventListener("click", async () => {
       let target = t.url;
+      // with the redirect on, Altwiki would send a plain Wikipedia link straight back: ?altwiki=off prevents that
+      if (target && t.id === "wikipedia" && settings.enabled) target = target.replace(/^([^#]*?)(#.*)?$/, (m, a, h) => a + (a.includes("?") ? "&" : "?") + "altwiki=off" + (h || ""));
       if (!target) { // Wikiless: the background script picks an instance that is up
         b.textContent = "Looking for a working instance...";
         try { target = await api.runtime.sendMessage({ type: "wikilessUrl", page: url }); } catch (e) {}
