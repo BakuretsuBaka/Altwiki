@@ -59,27 +59,33 @@ function sameSite(a, b) {
 
 async function pageExists(wiki, url) {
   const hit = cache.get(url);
-  if (hit && Date.now() - hit.at < (hit.ok ? HIT_TTL : MISS_TTL)) return hit.ok;
-  let ok = false;
+  if (hit && Date.now() - hit.at < (hit.ok ? HIT_TTL : MISS_TTL)) return hit;
+  let ok = false, why = "";
   try {
     const r = await fetchLimited(url, FETCH_TIMEOUT, 65536);
     const chk = wiki.check || {};
     ok = r.ok && sameSite(r.url, url);
-    if (ok && chk.missingUrl && chk.missingUrl.test(r.url)) ok = false;
-    if (ok && chk.missingBody && chk.missingBody.test(r.text)) ok = false;
-    if (ok && !wiki.check && A.MW_MISSING.test(r.text)) ok = false;
+    if (!r.ok) why = r.challenge ? "bot check page (HTTP " + r.status + ")" : "HTTP " + r.status;
+    else if (!ok) why = "redirected to another site (" + hostOf(r.url) + ")";
+    if (ok && chk.missingUrl && chk.missingUrl.test(r.url)) { ok = false; why = "no such article (redirected to " + r.url + ")"; }
+    if (ok && chk.missingBody && chk.missingBody.test(r.text)) { ok = false; why = "page says the article does not exist"; }
+    if (ok && !wiki.check && A.MW_MISSING.test(r.text)) { ok = false; why = "page says the article does not exist"; }
+    if (ok) why = "found";
   } catch (e) {
     ok = false;
+    why = "request failed (" + ((e && e.name) || "error") + ": " + ((e && e.message) || "") + ")";
   }
-  cache.set(url, { at: Date.now(), ok });
-  return ok;
+  const res = { at: Date.now(), ok, why };
+  cache.set(url, res);
+  return res;
 }
 
-async function findInWiki(wiki, parsed) {
+async function findInWiki(wiki, parsed, trace) {
   const urls = A.candidateUrls(wiki, parsed);
   if (!urls.length) return null;
   const results = await Promise.all(urls.map((u) => pageExists(wiki, u)));
-  const i = results.indexOf(true);
+  if (trace) urls.forEach((u, k) => trace.push(wiki.name + " " + u + ": " + results[k].why));
+  const i = results.findIndex((r) => r.ok);
   return i >= 0 ? urls[i] : null;
 }
 
@@ -150,7 +156,7 @@ async function resolveTarget(parsed, trace) {
     const wiki = A.getWiki(id);
     if (!wiki) continue;
     if (!wiki.proxy && !A.candidateUrls(wiki, parsed).length) { trace.push(wiki.name + ": does not cover language " + parsed.lang); continue; }
-    const url = wiki.proxy ? await findWikiless(parsed, trace) : await findInWiki(wiki, parsed);
+    const url = wiki.proxy ? await findWikiless(parsed, trace) : await findInWiki(wiki, parsed, trace);
     trace.push(wiki.name + ": " + (url ? "found" : wiki.proxy ? "no instance answered" : "no such article"));
     if (url) return url;
   }
