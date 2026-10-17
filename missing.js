@@ -1,5 +1,5 @@
 // Runs on the alternative wikis (not on Wikiless). If the wiki shows its "this page has no text" notice,
-// the background script is told, and sends the tab to Wikiless instead (when Altwiki put it here).
+// the background script is told, and sends the tab back to Wikipedia (when Altwiki put it here).
 (function () {
   if (window.top !== window) return;
   const api = typeof browser !== "undefined" ? browser : chrome;

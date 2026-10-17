@@ -220,6 +220,7 @@ async function handleNavigation(d) {
   // Coming from the alternative page we sent this tab to, back to the Wikipedia article it replaced
   // (Back button, or a link on that page): let the user have Wikipedia this once.
   const rec = await getRec(d.tabId);
+  if (rec && rec.fellBack && stripHash(d.url) === rec.from) { dropRec(d.tabId); return; } // the way back from a wiki without the article
   if (rec && stripHash(d.url) === rec.from) {
     try {
       const tab = await api.tabs.get(d.tabId);
@@ -273,14 +274,10 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       const rec = await getRec(tab.id);
       // only for a page Altwiki sent this tab to, and only once
       if (!rec || rec.fellBack || !sameSite(tab.url, rec.target)) return;
-      const parsed = A.parseWikipediaUrl(rec.full);
-      if (!parsed) return;
-      const trace = [];
-      const url = await findWikiless(parsed, trace);
-      if (!url) { log({ page: rec.full, result: "the wiki has no article, no Wikiless instance answered, stayed", trace }); return; }
-      setRec(tab.id, { from: rec.from, full: rec.full, target: url, fellBack: true });
-      log({ page: rec.full, result: "the wiki has no article, redirected to " + url, trace });
-      api.tabs.update(tab.id, { url }).catch(() => {});
+      // the wiki has no article: back to the Wikipedia article this tab was sent away from
+      setRec(tab.id, Object.assign({}, rec, { fellBack: true }));
+      log({ page: rec.full, result: "the wiki has no article, back to Wikipedia", trace: [rec.target] });
+      api.tabs.update(tab.id, { url: rec.full }).catch(() => {});
     })();
     return;
   }
