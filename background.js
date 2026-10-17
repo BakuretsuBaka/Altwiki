@@ -155,8 +155,9 @@ function hostOf(u) { try { return new URL(u).hostname; } catch (e) { return u; }
 
 // ---------- resolving ----------
 
-async function resolveTarget(parsed, trace) {
+async function resolveTarget(parsed, trace, skip) {
   for (const id of A.wikiOrder(settings)) {
+    if (skip && skip.includes(id)) continue;
     const wiki = A.getWiki(id);
     if (!wiki) continue;
     if (!wiki.proxy && !A.candidateUrls(wiki, parsed).length) { trace.push(wiki.name + ": does not cover language " + parsed.lang); continue; }
@@ -165,7 +166,7 @@ async function resolveTarget(parsed, trace) {
     else if (settings.mode !== "priority") url = A.candidateUrls(wiki, parsed)[0] || null; // one wiki: go straight there
     else url = await findInWiki(wiki, parsed, trace);
     trace.push(wiki.name + ": " + (url ? "found" : wiki.proxy ? "no instance answered" : "no such article"));
-    if (url) return url;
+    if (url) return { url, id };
   }
   return null;
 }
@@ -228,7 +229,8 @@ async function handleNavigation(d) {
     } catch (e) {}
   }
   const trace = [];
-  const target = await resolveTarget(parsed, trace);
+  const found = await resolveTarget(parsed, trace);
+  const target = found && found.url;
   if (!target) {
     if (trace.length && (await hasPermission()) === false) trace.unshift("access to the wikis is not granted (open the settings page and click Grant access)");
     log({ page: d.url, result: "stayed on Wikipedia", trace });
@@ -239,7 +241,7 @@ async function handleNavigation(d) {
     backForward.delete(d.tabId);
     return;
   }
-  setRec(d.tabId, { from: stripHash(d.url), full: d.url, target });
+  setRec(d.tabId, { from: stripHash(d.url), full: d.url, target, id: found.id, tried: [found.id] });
   log({ page: d.url, result: "redirected to " + target, trace });
   api.tabs.update(d.tabId, { url: target }).catch(() => {});
 }
@@ -274,7 +276,20 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       const rec = await getRec(tab.id);
       // only for a page Altwiki sent this tab to, and only once
       if (!rec || rec.fellBack || !sameSite(tab.url, rec.target)) return;
-      // the wiki has no article: back to the Wikipedia article this tab was sent away from
+      // the wiki has no article. Priority mode goes on down the list; otherwise (or when the list is used up)
+      // back to the Wikipedia article this tab was sent away from.
+      const tried = rec.tried || (rec.id ? [rec.id] : []);
+      if (settings.mode === "priority") {
+        const parsed = A.parseWikipediaUrl(rec.full);
+        const trace = [];
+        const next = parsed && (await resolveTarget(parsed, trace, tried));
+        if (next) {
+          setRec(tab.id, Object.assign({}, rec, { target: next.url, id: next.id, tried: tried.concat(next.id) }));
+          log({ page: rec.full, result: "the wiki has no article, next in the list: " + next.url, trace });
+          api.tabs.update(tab.id, { url: next.url }).catch(() => {});
+          return;
+        }
+      }
       setRec(tab.id, Object.assign({}, rec, { fellBack: true }));
       log({ page: rec.full, result: "the wiki has no article, back to Wikipedia", trace: [rec.target] });
       api.tabs.update(tab.id, { url: rec.full }).catch(() => {});
