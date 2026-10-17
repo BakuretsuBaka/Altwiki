@@ -2,7 +2,7 @@
 
 <h1 align="center">Altwiki</h1>
 
-A browser extension (Chrome and Firefox, Manifest V3) that opens Wikipedia articles on an alternative wiki instead. When you open a Wikipedia article, Altwiki checks whether your chosen wiki has an article on the same topic in the same language. If it does, you are sent there. If it does not, you stay on Wikipedia.
+A browser extension (Chrome and Firefox, Manifest V3) that opens Wikipedia articles on an alternative wiki instead. When you open a Wikipedia article, Altwiki sends you to the same article, in the same language, on your chosen wiki. With several wikis in priority mode it first checks whether each one has the article. Wikiless is the exception: it needs a working instance, so Altwiki picks one that is up and stays on Wikipedia if none is.
 
 ## What it does
 
@@ -32,12 +32,12 @@ A browser extension (Chrome and Firefox, Manifest V3) that opens Wikipedia artic
 ## Limits
 
 - An article is only found when it has the same title as on Wikipedia. HandWiki titles carry a topic prefix (for example `Physics:`), so Altwiki also tries the common prefixes.
-- A wiki is judged to have the article when the page answers normally and does not show the usual "no such page" text. Sites that handle missing pages in an unusual way (Grokipedia, Baidu Baike, Baike.com, Everipedia) are checked with extra rules that may need adjusting when the sites change.
+- With a single wiki there is no check: the article address is built from the title and you are sent straight there. In priority mode a wiki is judged to have the article when the page answers normally and does not show the usual "no such page" text; a site that blocks the check or answers oddly is given the benefit of the doubt. Sites that handle missing pages in an unusual way (Grokipedia, Baidu Baike, Baike.com, Everipedia) are checked with extra rules that may need adjusting when the sites change.
 - Altwiki asks the wikis for the page before redirecting, so a redirect can take a moment. Answers are remembered for a while.
 
 ## Privacy
 
-Altwiki sends no data anywhere except the requests that check whether an alternative wiki has an article: the address of that article on that wiki (and, for Wikiless, on an instance). Settings are stored in the browser and never leave it. There is no analytics and no account.
+Altwiki sends no data anywhere except the requests that check whether an alternative wiki has an article (priority mode only) or whether a Wikiless instance is up: the address of that article on that wiki (and, for Wikiless, on an instance). Settings are stored in the browser and never leave it. There is no analytics and no account.
 
 ## Install
 

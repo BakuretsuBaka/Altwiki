@@ -65,15 +65,19 @@ async function pageExists(wiki, url) {
     const r = await fetchLimited(url, FETCH_TIMEOUT, 65536);
     const chk = wiki.check || {};
     ok = r.ok && sameSite(r.url, url);
-    if (!r.ok) why = r.challenge ? "bot check page (HTTP " + r.status + ")" : "HTTP " + r.status;
-    else if (!ok) why = "redirected to another site (" + hostOf(r.url) + ")";
+    // only a clear "not found" counts as missing; a site that blocks the check or answers oddly is given the benefit of the doubt
+    if (!r.ok) {
+      const gone = r.status === 404 || r.status === 410;
+      ok = !gone;
+      why = gone ? "HTTP " + r.status + " (no such article)" : (r.challenge ? "bot check page" : "HTTP " + r.status) + ", could not check, redirecting anyway";
+    } else if (!ok) { ok = true; why = "redirected to another site (" + hostOf(r.url) + "), could not check, redirecting anyway"; }
     if (ok && chk.missingUrl && chk.missingUrl.test(r.url)) { ok = false; why = "no such article (redirected to " + r.url + ")"; }
     if (ok && chk.missingBody && chk.missingBody.test(r.text)) { ok = false; why = "page says the article does not exist"; }
     if (ok && !wiki.check && A.MW_MISSING.test(r.text)) { ok = false; why = "page says the article does not exist"; }
-    if (ok) why = "found";
+    if (ok && !why) why = "found";
   } catch (e) {
-    ok = false;
-    why = "request failed (" + ((e && e.name) || "error") + ": " + ((e && e.message) || "") + ")";
+    ok = true;
+    why = "request failed (" + ((e && e.name) || "error") + ": " + ((e && e.message) || "") + "), could not check, redirecting anyway";
   }
   const res = { at: Date.now(), ok, why };
   cache.set(url, res);
@@ -156,7 +160,10 @@ async function resolveTarget(parsed, trace) {
     const wiki = A.getWiki(id);
     if (!wiki) continue;
     if (!wiki.proxy && !A.candidateUrls(wiki, parsed).length) { trace.push(wiki.name + ": does not cover language " + parsed.lang); continue; }
-    const url = wiki.proxy ? await findWikiless(parsed, trace) : await findInWiki(wiki, parsed, trace);
+    let url;
+    if (wiki.proxy) url = await findWikiless(parsed, trace);
+    else if (settings.mode !== "priority") url = A.candidateUrls(wiki, parsed)[0] || null; // one wiki: go straight there
+    else url = await findInWiki(wiki, parsed, trace);
     trace.push(wiki.name + ": " + (url ? "found" : wiki.proxy ? "no instance answered" : "no such article"));
     if (url) return url;
   }
