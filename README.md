@@ -69,3 +69,5 @@ Clone this repository and load the folder directly ("Load unpacked" in Chromium 
 ## License
 
 GPL-3.0-only. See [LICENSE](LICENSE).
+
+The icon uses the letter "a" from UnifrakturMaguntia (SIL Open Font License 1.1, see `tools/fonts/`).
