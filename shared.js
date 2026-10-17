@@ -125,15 +125,6 @@
       url: (l, t) => `https://www.baike.com/wiki/${t}`,
       check: { missingBody: /暂无词条|词条不存在|没有找到.{0,6}词条/ },
       origins: ["https://www.baike.com/*", "https://baike.com/*"]
-    },
-    {
-      id: "everipedia",
-      name: "Everipedia",
-      home: "https://everipedia.io/",
-      langs: ["en"],
-      note: "Wikipedia-derived project. Article paths on the new address are unverified.",
-      url: (l, t) => `https://everipedia.io/wiki/lang_en/${t}`,
-      origins: ["https://everipedia.io/*"]
     }
   ];
 

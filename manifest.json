@@ -27,8 +27,7 @@
     "https://ru.ruwiki.ru/*",
     "https://baike.baidu.com/*",
     "https://www.baike.com/*",
-    "https://baike.com/*",
-    "https://everipedia.io/*"
+    "https://baike.com/*"
   ],
   "optional_host_permissions": [
     "https://*/*"
@@ -48,8 +47,7 @@
         "https://ru.ruwiki.ru/*",
         "https://baike.baidu.com/*",
         "https://www.baike.com/*",
-        "https://baike.com/*",
-        "https://everipedia.io/*"
+        "https://baike.com/*"
       ],
       "js": [
         "missing.js"
