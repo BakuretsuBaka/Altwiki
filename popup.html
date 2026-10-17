@@ -11,6 +11,9 @@
     .muted { opacity: .7; font-size: 12.5px; }
     button { width: 100%; margin-top: 10px; font: inherit; color: inherit; background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; }
     button:hover { border-color: var(--accent); }
+    .warn { margin: 8px 0; padding: 8px 10px; border: 1px solid #d9822b; border-radius: 8px; font-size: 12.5px; background: #d9822b22; }
+    .warn button { margin-top: 8px; }
+    [hidden] { display: none !important; }
     details { margin-top: 10px; font-size: 12.5px; }
     summary { cursor: pointer; opacity: .8; }
     #events { list-style: none; margin: 6px 0 0; padding: 0; max-height: 220px; overflow: auto; }
@@ -27,6 +30,7 @@
 <body>
   <h1><img src="icons/icon-32.png" width="22" height="22" alt="" style="vertical-align:-4px;margin-right:6px">Altwiki</h1>
   <div class="row"><span>Redirect on</span><label class="switch"><input type="checkbox" id="enabled"><span class="slider"></span></label></div>
+  <div id="perm" class="warn" hidden><b>Access to the wikis is missing.</b> Without it Altwiki cannot check whether an article exists, so nothing is redirected (Firefox does not grant this on install).<button id="grant" type="button">Grant access</button></div>
   <div class="row muted"><span id="summary"></span></div>
   <button id="options" type="button">Choose wiki</button>
   <details id="why"><summary>What happened on the last pages</summary><ul id="events"></ul></details>

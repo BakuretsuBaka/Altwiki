@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Altwiki",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Opens Wikipedia articles on an alternative wiki instead, when that wiki has the same article in the same language.",
   "permissions": [
     "storage",

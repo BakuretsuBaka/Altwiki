@@ -254,3 +254,10 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 });
+
+// Firefox does not grant the wikis' addresses on install, and without them the existence check cannot run:
+// send the user to the settings page, which has the button for it.
+if (api.runtime.onInstalled) api.runtime.onInstalled.addListener(async (d) => {
+  if (d.reason !== "install" && d.reason !== "update") return;
+  if ((await hasPermission()) === false) api.runtime.openOptionsPage();
+});

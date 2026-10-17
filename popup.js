@@ -55,3 +55,12 @@ $("debug").addEventListener("click", async () => {
     $("debug").textContent = "Copy failed";
   }
 });
+
+async function showPermission() {
+  try { $("perm").hidden = await api.permissions.contains({ origins: A.allOrigins() }); } catch (e) {}
+}
+$("grant").addEventListener("click", async () => {
+  try { await api.permissions.request({ origins: A.allOrigins() }); } catch (e) {}
+  showPermission();
+});
+showPermission();
