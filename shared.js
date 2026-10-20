@@ -82,16 +82,6 @@
       origins: ["https://grokipedia.com/*"]
     },
     {
-      id: "handwiki",
-      name: "HandWiki",
-      home: "https://handwiki.org/",
-      langs: ["en"],
-      note: "Science, mathematics, computing and other technical topics. Its titles carry a topic prefix, so Altwiki also tries the common prefixes.",
-      url: (l, t) => `https://handwiki.org/wiki/${t}`,
-      prefixes: ["Physics:", "Chemistry:", "Biology:", "Astronomy:", "Engineering:", "Software:", "Earth:", "Medicine:", "Philosophy:", "Social:", "Biography:", "Company:", "Organization:", "Place:"],
-      origins: ["https://handwiki.org/*"]
-    },
-    {
       id: "ruwiki",
       name: "Ruwiki",
       home: "https://ru.ruwiki.ru/",

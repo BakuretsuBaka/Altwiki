@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Altwiki",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Opens Wikipedia articles on an alternative wiki instead, when that wiki has the same article in the same language.",
   "permissions": [
     "storage",
@@ -23,7 +23,6 @@
     "https://conservapedia.com/*",
     "https://*.metapedia.org/*",
     "https://grokipedia.com/*",
-    "https://handwiki.org/*",
     "https://ru.ruwiki.ru/*",
     "https://baike.baidu.com/*",
     "https://www.baike.com/*",
@@ -43,7 +42,6 @@
         "https://conservapedia.com/*",
         "https://*.metapedia.org/*",
         "https://grokipedia.com/*",
-        "https://handwiki.org/*",
         "https://ru.ruwiki.ru/*",
         "https://baike.baidu.com/*",
         "https://www.baike.com/*",

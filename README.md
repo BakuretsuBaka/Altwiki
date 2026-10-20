@@ -24,16 +24,15 @@ A browser extension (Chrome and Firefox, Manifest V3) that opens Wikipedia artic
 | Conservapedia | conservapedia.com | en | Conservative Christian perspective |
 | Metapedia | metapedia.org | en, cs, da, de, el, es, et, fr, hr, mk, no, pt, ro, sk, sv | Far-right, nationalist and ethnonationalist perspective |
 | Grokipedia | grokipedia.com | en | AI-generated encyclopedia associated with xAI |
-| HandWiki | handwiki.org | en | Science, mathematics, computing and other technical topics |
 | Ruwiki | ru.ruwiki.ru | ru | Russian-language encyclopedia |
 | Baidu Baike | baike.baidu.com | zh | Large Chinese-language encyclopedia |
 | Baike.com | baike.com | zh | Chinese-language collaborative reference work |
 
 ## Limits
 
-- An article is only found when it has the same title as on Wikipedia. HandWiki titles carry a topic prefix (for example `Physics:`), so Altwiki also tries the common prefixes.
+- An article is only found when it has the same title as on Wikipedia.
 - If the wiki then shows its "this page has no text" notice (the standard MediaWiki missing-article block, in any language), Altwiki sends the tab back to the Wikipedia article (in priority mode it first tries the next wikis in your list). This happens once per redirect and only on pages Altwiki sent you to. If you would rather land on Wikiless in that case, use "several wikis with priorities" and put Wikiless last.
-- There is no check before the redirect: the article address is built from the title and you are sent straight there. Whether the wiki really has the article only shows once its page has loaded, so you may briefly see an empty page before Altwiki moves on. This detection only works on MediaWiki wikis. Grokipedia, Baidu Baike and Baike.com do not show that notice, so on those a missing article is not noticed.
+- There is no check before the redirect: the article address is built from the title and you are sent straight there. Whether the wiki really has the article only shows once its page has loaded, so you may briefly see an empty page before Altwiki moves on. This detection works on MediaWiki wikis and on Grokipedia (its own "Article Not Found" page). Baidu Baike and Baike.com do not show a comparable notice, so on those a missing article is not noticed.
 - Wikiless instances are checked in the background before a redirect (up to three at a time), so a redirect through Wikiless can take a moment. Answers are remembered for a while.
 ## Privacy
 

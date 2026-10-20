@@ -39,8 +39,6 @@ test("builds target URLs in the right scheme and language", () => {
   assert.deepStrictEqual(A.candidateUrls(A.getWiki("justapedia"), p), []); // English only
   assert.deepStrictEqual(A.candidateUrls(A.getWiki("metapedia"), p), ["https://de.metapedia.org/wiki/K%C3%B6ln"]);
   const en = A.parseWikipediaUrl("https://en.wikipedia.org/wiki/Quantum_mechanics#History");
-  assert.strictEqual(A.candidateUrls(A.getWiki("handwiki"), en)[0], "https://handwiki.org/wiki/Quantum_mechanics#History");
-  assert.ok(A.candidateUrls(A.getWiki("handwiki"), en).includes("https://handwiki.org/wiki/Physics:Quantum_mechanics#History"));
   const zh = A.parseWikipediaUrl("https://zh.wikipedia.org/wiki/Python_(programming_language)");
   assert.strictEqual(A.candidateUrls(A.getWiki("baidubaike"), zh)[0], "https://baike.baidu.com/item/Python%20(programming%20language)");
   assert.strictEqual(A.wikilessUrl("https://wikiless.example/", p), "https://wikiless.example/wiki/K%C3%B6ln?lang=de");
@@ -86,7 +84,6 @@ test("pages on the wikis are read back, and the 'view on' list only offers wikis
     assert.strictEqual(back.title, "Alan_Turing");
     assert.strictEqual(back.hash, "#x");
   }
-  assert.strictEqual(A.parseArticleUrl("https://handwiki.org/wiki/Physics:Quantum_mechanics").title, "Quantum_mechanics");
   assert.strictEqual(A.parseArticleUrl("https://wikiless.com/wiki/Cat?lang=de").lang, "de");
   assert.strictEqual(A.parseArticleUrl("https://example.org/wiki/Cat"), null);
 
@@ -94,7 +91,7 @@ test("pages on the wikis are read back, and the 'view on' list only offers wikis
   const de = names("https://de.wikipedia.org/wiki/K%C3%B6ln");
   assert.deepStrictEqual(de, ["wikiless", "metapedia"]); // everything else is English only
   const en = names("https://en.wikipedia.org/wiki/Cat");
-  assert.ok(en.includes("justapedia") && en.includes("handwiki") && !en.includes("ruwiki") && !en.includes("baidubaike"));
+  assert.ok(en.includes("justapedia") && !en.includes("handwiki") && !en.includes("ruwiki") && !en.includes("baidubaike"));
   assert.ok(!en.includes("wikipedia"));
   // on an alternative wiki: Wikipedia in that language is offered, the wiki itself is not
   const onRu = A.viewTargets(A.parseArticleUrl("https://ru.ruwiki.ru/wiki/%D0%9A%D0%BE%D1%82"));
