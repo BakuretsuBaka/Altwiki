@@ -42,7 +42,7 @@ Altwiki sends no data anywhere except the requests that check whether a Wikiless
 
 ### Firefox
 
-Install the `-firefox.zip` from the [latest release](https://github.com/BakuretsuBaka/Altwiki/releases/latest) as a temporary add-on: open `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on" and select the zip. Temporary add-ons are removed when Firefox closes. A listing on Firefox Add-ons is planned.
+Install it from Firefox Add-ons: [Altwiki on addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/altwiki/). Click "Add to Firefox". It updates itself.
 
 ### Chrome, Edge, Brave and other Chromium browsers
 
