@@ -1,6 +1,6 @@
 {
   "name": "altwiki",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Opens Wikipedia articles on an alternative wiki when it has the same article in the same language",
   "license": "GPL-3.0-only",
   "private": true,
